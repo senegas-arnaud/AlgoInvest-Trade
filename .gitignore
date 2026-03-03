@@ -1,0 +1,14 @@
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.vscode/
+settings.json
+.pandas_cache/
+
