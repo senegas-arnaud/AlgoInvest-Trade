@@ -53,9 +53,6 @@ class Greedy():
         print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
 
 
-
-        
-
 algo = Greedy(data1)
 algo.clean_data(data1)
 algo.greed_algo()

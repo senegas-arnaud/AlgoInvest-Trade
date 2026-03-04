@@ -1,5 +1,4 @@
 import pandas
-from itertools import combinations
 import time
 import tracemalloc
 
@@ -12,7 +11,18 @@ class Brute_force():
     def __init__(self, csv_action):
         self.csv_action = csv_action
 
-    def bf_algo(self):
+    def generate_combinations(self, actions):
+        all_combinations = [[]]
+
+        for action in actions:
+            new_combinations = []
+            for existing in all_combinations:
+                new_combinations.append(existing + [action]) 
+            all_combinations = all_combinations + new_combinations
+
+        return all_combinations[1:]
+
+    def bf_algo(self, silent=False):
         start_time = time.time()
         wallet = 500
         best_benefit = 0
@@ -20,46 +30,50 @@ class Brute_force():
         best_cost = 0
         actions = list(self.csv_action.itertuples())
 
-        for size in range(1, len(actions) + 1):
-            for combination in combinations(actions, size):
-                total_cost = sum(action.price for action in combination)
+        all_combinations = self.generate_combinations(actions)
 
-                if total_cost <= wallet:
-                    total_benefit = sum(action.price * (action.profit / 100) for action in combination)
+        for combination in all_combinations:
+            total_cost = 0
+            total_benefit = 0
 
-                    if total_benefit > best_benefit:
-                        best_benefit = total_benefit
-                        best_combination = [action.name for action in combination]
-                        best_cost = total_cost
+            for action in combination:
+                total_cost += action.price
+                total_benefit += action.price * (action.profit / 100)
 
-        end_time = time.time() 
+            if total_cost <= wallet and total_benefit > best_benefit:
+                best_benefit = total_benefit
+                best_combination = [action.name for action in combination]
+                best_cost = total_cost
+
+        end_time = time.time()
         execution_time = end_time - start_time
 
-        print(f"Meilleure combinaison : {best_combination}")    
-        print(f"Coût total : {best_cost}€")
-        print(f"Bénéfice total : {best_benefit}€")
-        print(f"Temps d'exécution : {execution_time:.2f} secondes")
-    
+        if not silent:
+            print(f"Meilleure combinaison : {best_combination}")
+            print(f"Coût total : {best_cost}€")
+            print(f"Bénéfice total : {best_benefit}€")
+            print(f"Temps d'exécution : {execution_time:.2f} secondes")
+
     def clean_data(self, data):
         data_cleaned = data[
-            (data['price'] > 0) &      
-            (data['profit'] > 0)      
+            (data['price'] > 0) &
+            (data['profit'] > 0)
         ].copy()
-        
+
         print(f"📊 Actions totales : {len(data)}")
         print(f"❌ Actions filtrées : {len(data) - len(data_cleaned)}\n")
-        
+
         return data_cleaned
     
     def memory_calculation(self):
         tracemalloc.start()
-        self.bf_algo()
+        self.bf_algo(silent=True)
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
-        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
-        
-        
+        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB") 
+
+
 algo = Brute_force(csv_action)
 algo.clean_data(csv_action)
-print(algo.bf_algo())
+algo.bf_algo()
 algo.memory_calculation()
