@@ -1,6 +1,7 @@
 import pandas
 from itertools import combinations
 import time
+import tracemalloc
 
 csv_action = pandas.read_csv("Data/ActionList.csv", delimiter=",")
 csv_action["profit"] = csv_action["profit"].str.replace("%", "").astype(float)
@@ -49,8 +50,16 @@ class Brute_force():
         print(f"❌ Actions filtrées : {len(data) - len(data_cleaned)}\n")
         
         return data_cleaned
+    
+    def memory_calculation(self):
+        tracemalloc.start()
+        self.bf_algo()
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
         
         
 algo = Brute_force(csv_action)
 algo.clean_data(csv_action)
 print(algo.bf_algo())
+algo.memory_calculation()

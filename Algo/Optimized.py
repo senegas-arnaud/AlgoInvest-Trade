@@ -1,6 +1,7 @@
 import pandas
 import math
 import time
+import tracemalloc
 
 csv_action = pandas.read_csv("Data/ActionList.csv", delimiter=",")
 csv_action["profit"] = csv_action["profit"].str.replace("%", "").astype(float)
@@ -89,6 +90,14 @@ class Optimized():
         
         return best_combinaison, profit_total, cost_total_real
 
+    def memory_calculation(self):
+        tracemalloc.start()
+        self.opti_algo(500)
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
 
-algo = Optimized(data2)
+
+algo = Optimized(data1)
 algo.display_result(500)
+algo.memory_calculation()

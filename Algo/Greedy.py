@@ -1,5 +1,6 @@
 import pandas
 import time
+import tracemalloc
 
 csv_action = pandas.read_csv("Data/ActionList.csv", delimiter=",")
 csv_action["profit"] = csv_action["profit"].str.replace("%", "").astype(float)
@@ -44,9 +45,18 @@ class Greedy():
         print(f"💵 Budget restant : {wallet - total_cost:.2f}€")
         print(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes\n")
 
+    def memory_calculation(self):
+        tracemalloc.start()
+        self.greed_algo()
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
+
+
 
         
 
-algo = Greedy(data2)
-algo.clean_data(data2)
+algo = Greedy(data1)
+algo.clean_data(data1)
 algo.greed_algo()
+algo.memory_calculation()
