@@ -94,6 +94,16 @@ class Optimized():
             if cost_total + action.price <= wallet:
                 best_combinaison.append(action.name)
                 cost_total += action.price
+
+        final_cost = sum(a.price for a in self.actions if a.name in best_combinaison)
+    
+        if final_cost > wallet:
+            while final_cost > wallet and best_combinaison:
+                actions_in = [a for a in self.actions if a.name in best_combinaison]
+                worst = min(actions_in, key=lambda a: a.price * a.profit / 100)
+                best_combinaison.remove(worst.name)
+                final_cost -= worst.price
+    
         
         return best_combinaison
 
@@ -141,5 +151,5 @@ class Optimized():
         print(f"🧠 Consommation actuelle de la mémoire: {current / 10**6:.2f} MB; Pic de consommation: {peak / 10**6:.2f} MB\n")
 
 algo = Optimized(data1, 100)  # Step = 1 -> Optimal results
-algo.display_result(10000)
-algo.memory_calculation(10000)
+algo.display_result(500)
+algo.memory_calculation(500)

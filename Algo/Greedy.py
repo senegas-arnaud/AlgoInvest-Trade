@@ -58,6 +58,6 @@ class Greedy():
         print(f"🧠 Consommation actuelle de la mémoire: {current / 10**6:.2f} MB; Pic de consommation: {peak / 10**6:.2f} MB\n")
 
 
-algo = Greedy(data2)
+algo = Greedy(data1)
 algo.greed_algo()
 algo.memory_calculation()
