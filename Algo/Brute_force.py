@@ -49,10 +49,12 @@ class Brute_force():
         execution_time = end_time - start_time
 
         if not silent:
-            print(f"Meilleure combinaison : {best_combination}")
-            print(f"Coût total : {best_cost}€")
-            print(f"Bénéfice total : {best_benefit}€")
-            print(f"Temps d'exécution : {execution_time:.2f} secondes")
+            print(f"🎯 Meilleure combinaison : {best_combination}")
+            print(f"📋 Nombre d'actions : {len(best_combination)}")
+            print(f"💰 Bénéfice total : {best_benefit:.2f}€")
+            print(f"💳 Coût total : {best_cost:.2f}€")
+            print(f"💵 Budget restant : {wallet - best_cost:.2f}€\n")
+            print(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes")
 
     def clean_data(self, data):
         data_cleaned = data[
@@ -70,7 +72,7 @@ class Brute_force():
         self.bf_algo(silent=True)
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
-        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB") 
+        print(f"🧠 Consommation actuelle de la mémoire: {current / 10**6:.2f} MB; Pic de consommation: {peak / 10**6:.2f} MB\n")
 
 
 algo = Brute_force(csv_action)

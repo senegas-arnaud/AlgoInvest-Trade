@@ -1,5 +1,4 @@
 import pandas
-import math
 import time
 import tracemalloc
 
@@ -9,95 +8,138 @@ data1 = pandas.read_csv("Data/dataset1.csv", delimiter=",")
 data2 = pandas.read_csv("Data/dataset2.csv", delimiter=",")
 
 class Optimized():
-    def __init__(self, data):
+    def __init__(self, data, step):
+        self.step = step
         self.data_original = self.clean_data(data)
-        
         self.csv_action = self.data_original.copy()
-        self.csv_action['price_rounded'] = self.csv_action['price'].apply(math.ceil).astype(int)
-         
+        self.csv_action['price_int'] = (self.csv_action['price'] * 100).round().astype(int)
         self.actions = list(self.csv_action.itertuples())
         self.stockage = {}
-    
+
     def clean_data(self, data):
-        data_cleaned = data[
-            (data['price'] > 0) &
-            (data['profit'] > 0)
-        ].copy()
-        
+        data_cleaned = data[(data['price'] > 0) & (data['profit'] > 0)].copy()
         print(f"📊 Actions totales : {len(data)}")
         print(f"❌ Actions filtrées : {len(data) - len(data_cleaned)}\n")
-        
         return data_cleaned
-    
+
     def opti_algo(self, wallet):
+        wallet_int = int(wallet * 100)
         nombre_actions = len(self.actions)
-        
         if nombre_actions == 0:
-            return (0, [])
-        
-        for budget in range(wallet + 1):
-            self.stockage[(0, budget)] = (0, [])
-        
+            return 0, []
+
+        if self.step == 1:
+            budget_range = range(wallet_int + 1)
+        else:
+            budget_range = range(0, wallet_int + 1, self.step)
+
+        for budget_level in budget_range:
+            self.stockage[(0, budget_level)] = (0, [])
+
         for index_action in range(1, nombre_actions + 1):
             current_action = self.actions[index_action - 1]
-            cost = current_action.price_rounded 
-            profit = current_action.price * (current_action.profit / 100) 
+            cost_level = current_action.price_int
             
-            for budget in range(wallet + 1):
-                profit_without, combinaison_without = self.stockage[(index_action - 1, budget)]
+            profit = round(current_action.price * (current_action.profit / 100) * 100)
 
-                if cost <= budget:
-                    profit_leftover, combinaison_leftover = self.stockage[(index_action - 1, budget - cost)]
+            for budget_level in budget_range:
+                profit_without, combinaison_without = self.stockage.get(
+                    (index_action - 1, budget_level), (0, [])
+                )
+
+                if cost_level <= budget_level:
+                    budget_left = budget_level - cost_level
+                    
+                    if self.step == 1:
+                        budget_key = budget_left
+                    else:
+                        budget_key = (budget_left // self.step) * self.step
+                    
+                    profit_leftover, combinaison_leftover = self.stockage.get(
+                        (index_action - 1, budget_key), (0, [])
+                    )
                     profit_with = profit + profit_leftover
                     combinaison_with = [current_action.name] + combinaison_leftover
                 else:
-                    profit_with = 0
-                    combinaison_with = []
-                
-                if profit_with > profit_without:
-                    self.stockage[(index_action, budget)] = (profit_with, combinaison_with)
-                else:
-                    self.stockage[(index_action, budget)] = (profit_without, combinaison_without)
+                    profit_with, combinaison_with = 0, []
 
-        return self.stockage[(nombre_actions, wallet)]
+                if profit_with > profit_without:
+                    self.stockage[(index_action, budget_level)] = (profit_with, combinaison_with)
+                else:
+                    self.stockage[(index_action, budget_level)] = (profit_without, combinaison_without)
+
+        return self.stockage.get((nombre_actions, wallet_int), (0, []))
+
+    def post_process(self, best_combinaison, wallet):
+        if not best_combinaison:
+            return best_combinaison
         
-    
+        cost_total = sum(a.price for a in self.actions if a.name in best_combinaison)
+        
+        while cost_total > wallet and best_combinaison:
+            actions_in = [a for a in self.actions if a.name in best_combinaison]
+            worst = min(actions_in, key=lambda a: (a.price * a.profit / 100) / a.price)
+            best_combinaison.remove(worst.name)
+            cost_total -= worst.price
+        
+        actions_not_taken = [a for a in self.actions if a.name not in best_combinaison]
+        
+        actions_sorted = sorted(
+            actions_not_taken,
+            key=lambda a: (a.price * a.profit / 100) / a.price,
+            reverse=True
+        )
+        
+        for action in actions_sorted:
+            if cost_total + action.price <= wallet:
+                best_combinaison.append(action.name)
+                cost_total += action.price
+        
+        return best_combinaison
+
     def display_result(self, wallet):
         start_time = time.time()
-
-        profit_total, best_combinaison = self.opti_algo(wallet)
-
-        end_time = time.time() 
-        execution_time = end_time - start_time
+        profit_total_cent, best_combinaison = self.opti_algo(wallet)
         
+        if self.step > 1:
+            best_combinaison = self.post_process(best_combinaison, wallet)
+        
+        end_time = time.time()
+        execution_time = end_time - start_time
+
         if not best_combinaison:
             print("Aucune solution trouvée")
             return [], 0, 0
-        
+
         cost_total_real = sum(
             action.price
-            for action in self.actions 
+            for action in self.actions
             if action.name in best_combinaison
         )
         
-        
-        print(f"🎯 Meilleure combinaison : {len(best_combinaison)} actions : {best_combinaison}")
-        print(f"💰 Bénéfice total : {profit_total:.2f}€")
-        print(f"💳 Coût total (réel) : {cost_total_real:.2f}€")
-        print(f"💵 Budget restant : {wallet - cost_total_real:.2f}€")
-        print(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes\n")
-        
-        
-        return best_combinaison, profit_total, cost_total_real
+        profit_total_real = sum(
+            action.price * (action.profit / 100)
+            for action in self.actions
+            if action.name in best_combinaison
+        )
 
-    def memory_calculation(self):
+        print("🎯 Meilleure combinaison :")
+        print("\n".join(f"   - {action}" for action in best_combinaison))
+        print(f"📋 Nombre d'actions : {len(best_combinaison)}")
+        print(f"💰 Bénéfice total : {profit_total_real:.2f}€")
+        print(f"💳 Coût total (réel) : {cost_total_real:.2f}€")
+        print(f"💵 Budget restant : {wallet - cost_total_real:.2f}€\n")
+        print(f"⏱️ Temps d'exécution : {execution_time:.4f} secondes")
+        
+        return best_combinaison, profit_total_real, cost_total_real
+
+    def memory_calculation(self, wallet):
         tracemalloc.start()
-        self.opti_algo(500)
+        self.opti_algo(wallet)
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
-        print(f"Current memory usage: {current / 10**6:.2f} MB; Peak memory usage: {peak / 10**6:.2f} MB")
+        print(f"🧠 Consommation actuelle de la mémoire: {current / 10**6:.2f} MB; Pic de consommation: {peak / 10**6:.2f} MB\n")
 
-
-algo = Optimized(data1)
-algo.display_result(500)
-algo.memory_calculation()
+algo = Optimized(data1, 100)  # Step = 1 -> Optimal results
+algo.display_result(10000)
+algo.memory_calculation(10000)
