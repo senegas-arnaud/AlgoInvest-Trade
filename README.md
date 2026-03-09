@@ -1,10 +1,10 @@
-# AlgoInvest&Trade - Optimisation de Portefeuille d'Actions
+# AlgoInvest&Trade 
 
 **AlgoInvest&Trade** est un projet d'optimisation d'investissement visant à maximiser le profit d'un portefeuille d'actions avec un budget limité.
 
 ### Contexte
 - **Budget maximum** : 500€ par client
-- **Contrainte** : Chaque action ne peut être achetée qu'une seule fois (problème du sac à dos 0/1)
+- **Contrainte** : Chaque action ne peut être achetée qu'une seule fois
 - **Objectif** : Maximiser le bénéfice total après 2 ans
 
 ### Données
@@ -18,10 +18,10 @@
 
 ### 1. Brute Force (`Brute_force.py`) - Big O(2ⁿ)
 
-#### Principe
+#### - Principe
 Teste **toutes les combinaisons possibles** pour trouver la meilleure.
 
-#### Performance
+#### - Performance
 ✅ Optimal garanti  
 ❌ Inutilisable au-delà de 25-30 actions
 
@@ -29,24 +29,24 @@ Teste **toutes les combinaisons possibles** pour trouver la meilleure.
 
 ### 2. Knapsack - Programmation Dynamique (`Optimized.py`) - Big O(n × W)
 
-#### Principe
+#### - Principe
 Décompose le problème en **sous-problèmes** et stocke les résultats intermédiaires pour éviter les recalculs.
 
 
-#### Optimisations Implémentées
+#### - Optimisations Implémentées
 
-##### Granularité Variable
+##### - Granularité Variable
 Utilise des paliers (1€, 5€, 10€) au lieu de centimes pour réduire les calculs.
 Opérations = n × (budget / paliers)
 
 
-##### Post-Traitement
+##### - Post-Traitement
 Compense la perte de précision due à la granularité :
 **Étape 1** : Retirer les actions si dépassement de budget  
 **Étape 2** : Ajouter des actions si budget restant  
 
 
-#### Performance
+#### - Performance
 ✅ Optimal (ou quasi-optimal avec granularité)  
 ✅ Scalable jusqu'à ~5 000 actions (avec granularité)  
 ⚠️ Lent sans granularité
@@ -55,11 +55,11 @@ Compense la perte de précision due à la granularité :
 
 ### 3. Greedy - Algorithme Glouton (`Greedy.py`) - Big O(n log n)
 
-#### Principe
+#### - Principe
 Trie les actions par **ratio profit/prix décroissant** et sélectionne goulûment les meilleures jusqu'à épuisement du budget.
 
 
-#### Performance
+#### - Performance
 ✅ Très rapide  
 ✅ Résultats excellents (~98-99% de l'optimal)  
 ✅ Scalable (millions d'actions)  
@@ -71,13 +71,13 @@ Trie les actions par **ratio profit/prix décroissant** et sélectionne goulûme
 
 ### Quel algorithme choisir ?
 
-#### Pour petits datasets
+#### - Pour petits datasets
 → **Knapsack step=1** : Solution optimale garantie en temps raisonnable
 
-#### Pour datasets moyens
+#### - Pour datasets moyens
 → **Knapsack avec granularité 1€** : 99.9% optimal, rapide
 
-#### Pour gros datasets
+#### - Pour gros datasets
 → **Greedy** : Excellent compromis vitesse/qualité
 
 ---
