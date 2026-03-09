@@ -1,10 +1,10 @@
-# AlgoInvest&Trade - Optimisation de Portefeuille d'Actions
+# AlgoInvest&Trade 
 
 **AlgoInvest&Trade** est un projet d'optimisation d'investissement visant à maximiser le profit d'un portefeuille d'actions avec un budget limité.
 
 ### Contexte
 - **Budget maximum** : 500€ par client
-- **Contrainte** : Chaque action ne peut être achetée qu'une seule fois (problème du sac à dos 0/1)
+- **Contrainte** : Chaque action ne peut être achetée qu'une seule fois
 - **Objectif** : Maximiser le bénéfice total après 2 ans
 
 ### Données
